@@ -17,6 +17,11 @@ export class HeroWodService {
       .$queryRaw`SELECT * from hero_wod ORDER BY 'desc'`;
   }
 
+  async get(title: string): Promise<hero_wod> {
+    return await this.prismaService
+      .$queryRaw`SELECT * from hero_wod WHERE title=${title}`;
+  }
+
   async createByCsv() {
     const stream = createReadStream(
       '/Users/user/JuProject/wodmon/TheHeroWod11.csv',

@@ -17,18 +17,20 @@ describe('HeroWodService Int', () => {
     await prisma.cleanDataBase();
   });
 
-  it('should be defined', () => {
-    expect(prisma).toBeDefined();
-  });
-  it('should be defined service', () => {
-    expect(service).toBeDefined();
-  });
-
   describe('GetAll', () => {
     it('should return 10 wods', async () => {
       await service.createByCsv();
       const result = await service.getAll();
       expect(result.length).toEqual(10);
+    });
+  });
+
+  describe('Get', () => {
+    it('should return 1 wod', async () => {
+      await service.createByCsv();
+      const wod = await service.get('Bell');
+      console.log(wod);
+      expect(wod[0].title).toEqual('Bell');
     });
   });
 });
