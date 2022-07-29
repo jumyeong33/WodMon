@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateHeroWod } from './dto/createHeroWod';
 import { hero_wod } from '@prisma/client';
 import { CsvParser } from 'nest-csv-parser';
 import { createReadStream } from 'fs';
+import { PrismaService } from 'src/prisma/prisma.service';
+
 @Injectable()
 export class HeroWodService {
   constructor(
@@ -31,6 +32,6 @@ export class HeroWodService {
       await this.prismaService
         .$queryRaw`INSERT INTO hero_wod(title, description, history) VALUES(${wod.title}, ${wod.description},${wod.history})`;
     }
-    return heroWods;
+    return true;
   }
 }
