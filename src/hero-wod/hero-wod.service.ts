@@ -22,6 +22,18 @@ export class HeroWodService {
       .$queryRaw`SELECT * from hero_wod WHERE title=${title}`;
   }
 
+  async getRandom(): Promise<hero_wod[]> {
+    return await this.prismaService
+      .$queryRaw`SELECT * FROM hero_wod ORDER BY RAND() LIMIT 1`;
+  }
+
+  async getRandomFilter(wodIDs: [number]): Promise<any> {
+    const result = await this.prismaService.hero_wod.findMany({
+      where: { id: { notIn: wodIDs } },
+    });
+    return result[Math.floor(Math.random() * result.length)];
+  }
+
   async createByCsv() {
     const stream = createReadStream(
       '/Users/user/JuProject/wodmon/TheHeroWod11.csv',

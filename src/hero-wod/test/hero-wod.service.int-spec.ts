@@ -29,8 +29,15 @@ describe('HeroWodService Int', () => {
     it('should return 1 wod', async () => {
       await service.createByCsv();
       const wod = await service.get('Bell');
-      console.log(wod);
       expect(wod[0].title).toEqual('Bell');
+    });
+  });
+
+  describe('GetRandom', () => {
+    it('should return 1 wod', async () => {
+      await service.createByCsv();
+      const wod = await service.getRandom();
+      expect(wod.length).toEqual(1);
     });
   });
 });
