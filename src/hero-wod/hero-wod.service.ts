@@ -28,10 +28,9 @@ export class HeroWodService {
   }
 
   async getRandomFilter(wodIDs: [number]): Promise<any> {
-    const result = await this.prismaService.hero_wod.findMany({
-      where: { id: { notIn: wodIDs } },
-    });
-    return result[Math.floor(Math.random() * result.length)];
+    const cond = wodIDs.toString();
+    return await this.prismaService
+      .$queryRaw`SELECT * FROM hero_wod WHERE NOT FIND_IN_SET(id, ${cond}) ORDER BY RAND() LIMIT 1`;
   }
 
   async createByCsv() {
