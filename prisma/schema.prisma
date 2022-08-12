@@ -5,12 +5,21 @@ model hero_wod {
     history     String?
     created_at  DateTime @default(now())
 }
-generator client {
-    provider = "prisma-client-js"
-}
-
-//데이터 베이스 연동
 datasource db {
     provider = "mysql"
     url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+model users {
+    id          Int       @id @default(autoincrement())
+    user_uuid   String    @unique
+    name        String?
+    email       String    @unique
+    password    String
+    created_at  DateTime  @default(now())
+    updated_at  DateTime?
+    archived_at DateTime?
 }
