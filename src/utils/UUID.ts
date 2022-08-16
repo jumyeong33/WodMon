@@ -1,3 +1,5 @@
+import { MethodNotAllowedException } from '@nestjs/common';
+
 /* eslint-disable prefer-const */
 export class UUID {
   private uuid: string;
@@ -8,7 +10,17 @@ export class UUID {
   public static New(): UUID {
     return new UUID(this.generateAt());
   }
+  public static Valid(str: string): boolean {
+    return (
+      str.match(
+        /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/,
+      ) !== null
+    );
+  }
   public String() {
+    if (!UUID.Valid(this.uuid)) {
+      throw new MethodNotAllowedException(`Invalid UUID : ${this.uuid}`);
+    }
     return this.uuid;
   }
 
