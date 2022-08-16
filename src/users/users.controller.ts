@@ -1,15 +1,7 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { replyOk, replyErr } from 'src/utils/ReplyHelper';
 
 @Controller('users')
 export class UsersController {
@@ -25,14 +17,14 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Get(':uuid')
+  async findOne(@Param('uuid') uuid: string) {
+    try {
+      const user = await this.usersService.findOne(uuid);
+      return replyOk(user);
+    } catch (err) {
+      return replyErr(err);
+    }
   }
 
   @Delete(':id')

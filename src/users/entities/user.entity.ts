@@ -3,5 +3,7 @@ export class User {
   uuid: string;
   name: string;
   email: string;
-  password: string;
+  createdAt: string;
+  updatedAt?: string | null;
+  archivedAt?: string | null;
 }

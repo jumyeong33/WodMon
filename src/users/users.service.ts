@@ -1,12 +1,28 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { UUID } from 'src/utils/UUID';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
+  public static FromRow(row): User {
+    const user = new User();
+    user.id = row.id;
+    user.uuid = row.user_uuid;
+    user.name = row.name;
+    user.email = row.email;
+    user.createdAt = row.created_at;
+    user.updatedAt = row.updated_at;
+    user.archivedAt = row.archived_at;
+
+    return user;
+  }
   constructor(private readonly prismaService: PrismaService) {}
   async create(createUserDto: CreateUserDto): Promise<string> {
     const existUser: [User] = await this.prismaService
@@ -23,19 +39,22 @@ export class UsersService {
       VALUES(${userUUID.String()},${createUserDto.name},${
       createUserDto.email
     },${createUserDto.password})`;
-    return 'This action adds a new user';
+    return userUUID.String();
   }
 
   findAll() {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
+  async findOne(uuid: string): Promise<User> {
+    const row: [User] = await this.prismaService
+      .$queryRaw`SELECT * FROM users WHERE user_uuid = ${uuid}`;
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+    if (row.length < 1) {
+      throw new BadRequestException('User Does Not exist');
+    }
+    const user = UsersService.FromRow(row[0]);
+    return user;
   }
 
   remove(id: number) {
