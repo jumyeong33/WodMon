@@ -1,6 +1,8 @@
+import { UUID } from 'src/utils/UUID';
+
 export class User {
   id: number;
-  uuid: string;
+  uuid: UUID;
   name: string;
   email: string;
   createdAt: string;

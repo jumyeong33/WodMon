@@ -8,23 +8,25 @@ import { UUID } from 'src/utils/UUID';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
+import { users } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  public static FromRow(row): User {
+  public static FromRow(row: users): User {
     const user = new User();
     user.id = row.id;
-    user.uuid = row.user_uuid;
+    user.uuid = UUID.FromStr(row.user_uuid);
     user.name = row.name;
     user.email = row.email;
-    user.createdAt = row.created_at;
-    user.updatedAt = row.updated_at;
-    user.archivedAt = row.archived_at;
+    user.createdAt = row.created_at.toDateString();
+    user.updatedAt = row.updated_at?.toDateString();
+    user.archivedAt = row.archived_at?.toDateString();
 
     return user;
   }
   constructor(private readonly prismaService: PrismaService) {}
-  async create(createUserDto: CreateUserDto): Promise<string> {
+
+  async create(createUserDto: CreateUserDto): Promise<UUID> {
     const existUser: [User] = await this.prismaService
       .$queryRaw`SELECT id FROM users WHERE email=${createUserDto.email}`;
 
@@ -39,7 +41,7 @@ export class UsersService {
       VALUES(${userUUID.String()},${createUserDto.name},${
       createUserDto.email
     },${createUserDto.password})`;
-    return userUUID.String();
+    return userUUID;
   }
 
   findAll() {
@@ -47,14 +49,14 @@ export class UsersService {
   }
 
   async findOne(uuid: string): Promise<User> {
-    const row: [User] = await this.prismaService
+    const row: [users] = await this.prismaService
       .$queryRaw`SELECT * FROM users WHERE user_uuid = ${uuid}`;
 
     if (row.length < 1) {
       throw new BadRequestException('User Does Not exist');
     }
-    const user = UsersService.FromRow(row[0]);
-    return user;
+
+    return UsersService.FromRow(row[0]);
   }
 
   remove(id: number) {

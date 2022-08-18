@@ -17,10 +17,13 @@ export class UUID {
       ) !== null
     );
   }
-  public String() {
-    if (!UUID.Valid(this.uuid)) {
-      throw new MethodNotAllowedException(`Invalid UUID : ${this.uuid}`);
+  public static FromStr(uuid: string): UUID {
+    if (!UUID.Valid(uuid)) {
+      throw new MethodNotAllowedException(`Invalid UUID : ${uuid}`);
     }
+    return new UUID(uuid);
+  }
+  public String() {
     return this.uuid;
   }
 

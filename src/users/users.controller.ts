@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { replyOk, replyErr } from 'src/utils/ReplyHelper';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -19,12 +20,15 @@ export class UsersController {
 
   @Get(':uuid')
   async findOne(@Param('uuid') uuid: string) {
+    let user: User;
+
     try {
-      const user = await this.usersService.findOne(uuid);
-      return replyOk(user);
+      user = await this.usersService.findOne(uuid);
     } catch (err) {
       return replyErr(err);
     }
+
+    return replyOk(user);
   }
 
   @Delete(':id')
