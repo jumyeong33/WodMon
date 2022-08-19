@@ -12,18 +12,6 @@ import { users } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  public static FromRow(row: users): User {
-    const user = new User();
-    user.id = row.id;
-    user.uuid = UUID.FromStr(row.user_uuid);
-    user.name = row.name;
-    user.email = row.email;
-    user.createdAt = row.created_at.toDateString();
-    user.updatedAt = row.updated_at?.toDateString();
-    user.archivedAt = row.archived_at?.toDateString();
-
-    return user;
-  }
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(createUserDto: CreateUserDto): Promise<UUID> {
@@ -56,7 +44,7 @@ export class UsersService {
       throw new BadRequestException('User Does Not exist');
     }
 
-    return UsersService.FromRow(row[0]);
+    return User.FromRow(row[0]);
   }
 
   remove(id: number) {

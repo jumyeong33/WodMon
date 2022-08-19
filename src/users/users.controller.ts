@@ -28,7 +28,7 @@ export class UsersController {
       return replyErr(err);
     }
 
-    return replyOk(user);
+    return replyOk(user.serialize());
   }
 
   @Delete(':id')
