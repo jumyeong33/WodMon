@@ -1,5 +1,6 @@
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ValidationError } from 'class-validator';
 import { AppModule } from './app.module';
 import authorize from './utils/preventRobots';
 
@@ -9,6 +10,13 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
+      exceptionFactory: (errors: ValidationError[]) => {
+        return new BadRequestException({
+          ok: false,
+          data: 'ValidationError',
+          message: errors[0].constraints,
+        });
+      },
     }),
   );
   app.use('/', authorize);
