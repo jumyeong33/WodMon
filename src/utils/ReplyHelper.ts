@@ -1,4 +1,4 @@
-const replyOk = (data) => {
+const replyOk = (data?: any) => {
   return { ok: true, data: data };
 };
 
