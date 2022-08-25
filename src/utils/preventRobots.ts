@@ -3,8 +3,8 @@ import { env } from 'process';
 
 const authorize = (req, res, next) => {
   if (
-    !req.headers.authorization ||
-    req.headers.authorization !== env.API_TOKEN
+    !req.headers['access-auth'] ||
+    req.headers['access-auth'] !== env.API_TOKEN
   ) {
     throw new AuthorizationError();
   }
