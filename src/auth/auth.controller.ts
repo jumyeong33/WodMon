@@ -1,10 +1,7 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import {
-  GetCurrentUser,
-  GetCurrentUserId,
-  Public,
-} from 'src/common/decorators';
+import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { GetCurrentUser, GetCurrentUserId } from 'src/common/decorators';
 import { AtGuard, RtGuard } from 'src/common/guards';
+import { replyErr, replyOk } from 'src/utils/ReplyHelper';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto';
 import { Tokens } from './interfaces';
@@ -13,25 +10,40 @@ import { Tokens } from './interfaces';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Public()
-  @Post('/signin')
-  signUp(@Body() dto: LoginDto): Promise<Tokens> {
-    return this.authService.signin(dto);
+  @Post('signin')
+  async signUp(@Body() dto: LoginDto): Promise<any> {
+    let tokens: Tokens;
+    try {
+      tokens = await this.authService.signin(dto);
+    } catch (err) {
+      return replyErr(err);
+    }
+
+    return replyOk(tokens);
   }
 
   @UseGuards(AtGuard)
+  @HttpCode(200)
   @Post('logout')
-  logout(@GetCurrentUserId() userId: number) {
-    return this.authService.logout(userId);
+  async logout(@GetCurrentUserId() userId: number) {
+    await this.authService.logout(userId);
+
+    return replyOk();
   }
 
-  @Public()
   @UseGuards(RtGuard)
   @Post('refresh')
-  refreshTokens(
+  async refreshTokens(
     @GetCurrentUser('refreshToken') refreshToken: string,
     @GetCurrentUserId() userId: number,
-  ): Promise<Tokens> {
-    return this.authService.refreshTokens(userId, refreshToken);
+  ): Promise<any> {
+    let tokens: Tokens;
+    try {
+      tokens = await this.authService.refreshTokens(userId, refreshToken);
+    } catch (err) {
+      return replyErr(err);
+    }
+
+    return replyOk(tokens);
   }
 }

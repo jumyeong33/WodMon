@@ -4,13 +4,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { replyOk, replyErr } from 'src/utils/ReplyHelper';
 import { User } from './entities/user.entity';
 import { UUID } from 'src/utils/UUID';
-import { Public } from 'src/common/decorators';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Public()
   @Post()
   async create(@Body() createUserDto: CreateUserDto): Promise<any> {
     let userUUID: UUID;
