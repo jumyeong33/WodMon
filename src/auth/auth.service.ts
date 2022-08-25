@@ -22,14 +22,13 @@ export class AuthService {
     if (!passwordMatches) {
       throw new ForbiddenException('Wrong Password');
     }
-    const tokens = await this.getTokens(user[0].id, user[0].email);
+    const tokens: Tokens = await this.getTokens(user[0].id, user[0].email);
     await this.updateRtHash(user[0].id, tokens.refresh_token);
 
     return tokens;
   }
 
   async logout(userId: number): Promise<void> {
-    console.log(userId);
     await this.prismaService
       .$queryRaw`UPDATE users SET refresh_token = null WHERE id = ${userId} && refresh_token IS NOT NULL`;
   }
