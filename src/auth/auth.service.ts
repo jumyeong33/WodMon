@@ -1,14 +1,21 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { LoginDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import { Tokens, JwtPayload } from './interfaces';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon from 'argon2';
+import { UsersService } from 'src/users/users.service';
+import { CreateGoogleUserDto } from 'src/users/dto/create-google-user.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly userService: UsersService,
     private jwtService: JwtService,
   ) {}
 
@@ -74,5 +81,28 @@ export class AuthService {
       access_token: at,
       refresh_token: rt,
     };
+  }
+
+  async signinWithGoogle(user: any) {
+    if (!user) {
+      throw new BadRequestException();
+    }
+    let checkUser: [any];
+    //if user already sigin with google and wodmon
+    checkUser = await this.prismaService
+      .$queryRaw`SELECT * FROM users WHERE googleId = ${user.id}`;
+    if (checkUser.length < 1) {
+      const tokens = await this.getTokens(checkUser[0].id, checkUser[0].email);
+      await this.updateRtHash(user[0].id, tokens.refresh_token);
+      return tokens;
+    }
+    checkUser = await this.prismaService
+      .$queryRaw`SELECT * FROM users WHERE email = ${user.email}`;
+    if (checkUser.length < 1) {
+      throw new ForbiddenException(
+        'User exist, but have not connected with google account',
+      );
+    }
+    await this.userService.createWithGoogle(user);
   }
 }

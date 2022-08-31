@@ -9,5 +9,6 @@ export class CreateGoogleUserDto {
   @IsNotEmpty()
   email: string;
 
+  @IsNotEmpty()
   googleId: string;
 }

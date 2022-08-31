@@ -1,6 +1,14 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { GetCurrentUser, GetCurrentUserId } from 'src/common/decorators';
-import { AtGuard, RtGuard } from 'src/common/guards';
+import { GetGoogleUser } from 'src/common/decorators/get-google-user.decorator';
+import { AtGuard, GoogleGuard, RtGuard } from 'src/common/guards';
 import { replyErr, replyOk } from 'src/utils/ReplyHelper';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto';
@@ -45,5 +53,17 @@ export class AuthController {
     }
 
     return replyOk(tokens);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleGuard)
+  async googleAuth() {
+    return replyOk();
+  }
+
+  @Get('google/redirect')
+  @UseGuards(GoogleGuard)
+  googleAuthRedirect(@GetGoogleUser() user: any) {
+    return this.authService.signinWithGoogle(user);
   }
 }

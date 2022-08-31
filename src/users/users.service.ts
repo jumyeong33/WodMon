@@ -10,6 +10,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { users } from '@prisma/client';
 import * as argon from 'argon2';
+import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -35,6 +36,33 @@ export class UsersService {
         ${createUserDto.name},
         ${createUserDto.email},
         ${hash})`;
+
+    return userUUID;
+  }
+
+  async createWithGoogle(
+    createGoogleUserDto: CreateGoogleUserDto,
+  ): Promise<UUID> {
+    const existUser: [User] = await this.prismaService
+      .$queryRaw`SELECT id FROM users WHERE email=${createGoogleUserDto.email}`;
+
+    if (existUser.length > 0) {
+      throw new HttpException('Email is Duplicated', HttpStatus.BAD_REQUEST);
+    }
+
+    const userUUID = UUID.New();
+    await this.prismaService.$queryRaw`INSERT INTO users(
+        user_uuid,
+        name,
+        email,
+        password,
+        google_id)
+      VALUES(
+        ${userUUID.String()},
+        ${createGoogleUserDto.name},
+        ${createGoogleUserDto.email},
+        null,
+        ${createGoogleUserDto.googleId})`;
 
     return userUUID;
   }
