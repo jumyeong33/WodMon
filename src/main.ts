@@ -14,7 +14,7 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.use('/', authorize);
+  // app.use('/', authorize);
   await app.listen(3000);
 }
 bootstrap();

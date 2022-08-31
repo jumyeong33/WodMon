@@ -90,19 +90,25 @@ export class AuthService {
     let checkUser: [any];
     //if user already sigin with google and wodmon
     checkUser = await this.prismaService
-      .$queryRaw`SELECT * FROM users WHERE googleId = ${user.id}`;
-    if (checkUser.length < 1) {
+      .$queryRaw`SELECT * FROM users WHERE google_id = ${user.googleId}`;
+    if (checkUser.length > 0) {
       const tokens = await this.getTokens(checkUser[0].id, checkUser[0].email);
-      await this.updateRtHash(user[0].id, tokens.refresh_token);
+      await this.updateRtHash(checkUser[0].id, tokens.refresh_token);
       return tokens;
     }
+
     checkUser = await this.prismaService
       .$queryRaw`SELECT * FROM users WHERE email = ${user.email}`;
-    if (checkUser.length < 1) {
+    if (checkUser.length > 0) {
       throw new ForbiddenException(
         'User exist, but have not connected with google account',
       );
     }
-    await this.userService.createWithGoogle(user);
+    const userUUID = await this.userService.createWithGoogle(user);
+    const newUser = await this.userService.MustFindOne(userUUID);
+    const tokens = await this.getTokens(newUser.id, newUser.email);
+    await this.updateRtHash(newUser.id, tokens.refresh_token);
+
+    return tokens;
   }
 }
