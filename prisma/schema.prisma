@@ -18,7 +18,7 @@ model users {
     user_uuid     String    @unique
     name          String?
     email         String    @unique
-    password      String
+    password      String?
     google_id     String?
     refresh_token String?
     created_at    DateTime  @default(now())
