@@ -6,7 +6,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { GetCurrentUser, GetCurrentUserId } from 'src/common/decorators';
+import { GetCurrentUser, GetCurrentUserUUId } from 'src/common/decorators';
 import { GetGoogleUser } from 'src/common/decorators/get-google-user.decorator';
 import { AtGuard, GoogleGuard, RtGuard } from 'src/common/guards';
 import { replyErr, replyOk } from 'src/utils/ReplyHelper';
@@ -33,8 +33,8 @@ export class AuthController {
   @UseGuards(AtGuard)
   @HttpCode(200)
   @Post('logout')
-  async logout(@GetCurrentUserId() userId: number) {
-    await this.authService.logout(userId);
+  async logout(@GetCurrentUserUUId() userUUID: string) {
+    await this.authService.logout(userUUID);
 
     return replyOk();
   }
@@ -43,11 +43,11 @@ export class AuthController {
   @Post('refresh')
   async refreshTokens(
     @GetCurrentUser('refreshToken') refreshToken: string,
-    @GetCurrentUserId() userId: number,
+    @GetCurrentUserUUId() userUUID: string,
   ): Promise<any> {
     let tokens: Tokens;
     try {
-      tokens = await this.authService.refreshTokens(userId, refreshToken);
+      tokens = await this.authService.refreshTokens(userUUID, refreshToken);
     } catch (err) {
       return replyErr(err);
     }
@@ -63,7 +63,14 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(GoogleGuard)
-  googleAuthRedirect(@GetGoogleUser() user: any) {
-    return this.authService.signinWithGoogle(user);
+  async googleAuthRedirect(@GetGoogleUser() user: any) {
+    let tokens: Tokens;
+    try {
+      tokens = await this.authService.signinWithGoogle(user);
+    } catch (err) {
+      return replyErr(err);
+    }
+
+    return replyOk(tokens);
   }
 }

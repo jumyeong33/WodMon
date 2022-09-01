@@ -29,20 +29,23 @@ export class AuthService {
     if (!passwordMatches) {
       throw new ForbiddenException('Wrong Password');
     }
-    const tokens: Tokens = await this.getTokens(user[0].id, user[0].email);
-    await this.updateRtHash(user[0].id, tokens.refresh_token);
+    const tokens: Tokens = await this.getTokens(
+      user[0].user_uuid,
+      user[0].email,
+    );
+    await this.updateRtHash(user[0].user_uuid, tokens.refresh_token);
 
     return tokens;
   }
 
-  async logout(userId: number): Promise<void> {
+  async logout(userUUID: string): Promise<void> {
     await this.prismaService
-      .$queryRaw`UPDATE users SET refresh_token = null WHERE id = ${userId} && refresh_token IS NOT NULL`;
+      .$queryRaw`UPDATE users SET refresh_token = null WHERE user_uuid = ${userUUID} && refresh_token IS NOT NULL`;
   }
 
-  async refreshTokens(userId: number, rt: string) {
+  async refreshTokens(userUUID: string, rt: string) {
     const user: [any] = await this.prismaService
-      .$queryRaw`SELECT * FROM users WHERE id = ${userId}`;
+      .$queryRaw`SELECT * FROM users WHERE user_uuid = ${userUUID}`;
     if (user.length < 1) {
       throw new ForbiddenException('User does not exist');
     }
@@ -50,20 +53,20 @@ export class AuthService {
     if (!rtMatches) {
       throw new ForbiddenException('Access Denied');
     }
-    const tokens = await this.getTokens(user[0].id, user[0].email);
-    await this.updateRtHash(user[0].id, tokens.refresh_token);
+    const tokens = await this.getTokens(user[0].user_uuid, user[0].email);
+    await this.updateRtHash(user[0].user_uuid, tokens.refresh_token);
 
     return tokens;
   }
-  async updateRtHash(userId: number, rt: string): Promise<void> {
+  async updateRtHash(userUUID: string, rt: string): Promise<void> {
     const hash = await argon.hash(rt);
     await this.prismaService
-      .$queryRaw`UPDATE users SET refresh_token = ${hash} WHERE id = ${userId}`;
+      .$queryRaw`UPDATE users SET refresh_token = ${hash} WHERE user_uuid = ${userUUID}`;
   }
 
-  async getTokens(userId: number, email: string): Promise<Tokens> {
+  async getTokens(userUUID: string, email: string): Promise<Tokens> {
     const jwtPayload: JwtPayload = {
-      id: userId,
+      uuid: userUUID,
       email: email,
     };
     const [at, rt] = await Promise.all([
@@ -92,8 +95,11 @@ export class AuthService {
     checkUser = await this.prismaService
       .$queryRaw`SELECT * FROM users WHERE google_id = ${user.googleId}`;
     if (checkUser.length > 0) {
-      const tokens = await this.getTokens(checkUser[0].id, checkUser[0].email);
-      await this.updateRtHash(checkUser[0].id, tokens.refresh_token);
+      const tokens = await this.getTokens(
+        checkUser[0].user_uuid,
+        checkUser[0].email,
+      );
+      await this.updateRtHash(checkUser[0].user_uuid, tokens.refresh_token);
       return tokens;
     }
 
@@ -106,8 +112,8 @@ export class AuthService {
     }
     const userUUID = await this.userService.createWithGoogle(user);
     const newUser = await this.userService.MustFindOne(userUUID);
-    const tokens = await this.getTokens(newUser.id, newUser.email);
-    await this.updateRtHash(newUser.id, tokens.refresh_token);
+    const tokens = await this.getTokens(newUser.uuid.String(), newUser.email);
+    await this.updateRtHash(newUser.uuid.String(), tokens.refresh_token);
 
     return tokens;
   }
