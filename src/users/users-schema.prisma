@@ -9,4 +9,5 @@ model users {
     created_at    DateTime  @default(now())
     updated_at    DateTime?
     archived_at   DateTime?
+    wods          wods[]
 }

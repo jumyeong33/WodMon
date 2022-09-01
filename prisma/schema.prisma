@@ -24,4 +24,16 @@ model users {
     created_at    DateTime  @default(now())
     updated_at    DateTime?
     archived_at   DateTime?
+    wods          wods[]
+}
+model wods {
+    id          Int       @id @default(autoincrement())
+    wod_uuid    String    @unique
+    user_uuid   String
+    title       String?
+    description String    @db.Text
+    created_at  DateTime  @default(now())
+    updated_at  DateTime?
+    archived_at DateTime?
+    users       users     @relation(fields: [user_uuid], references: [user_uuid])
 }
