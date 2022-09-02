@@ -6,10 +6,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { GetCurrentUser, GetCurrentUserUUId } from 'src/common/decorators';
+import { GetCurrentUser, GetCurrentUserUUID } from 'src/common/decorators';
 import { GetGoogleUser } from 'src/common/decorators/get-google-user.decorator';
 import { AtGuard, GoogleGuard, RtGuard } from 'src/common/guards';
 import { replyErr, replyOk } from 'src/utils/ReplyHelper';
+import { UUID } from 'src/utils/UUID';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto';
 import { Tokens } from './interfaces';
@@ -33,8 +34,8 @@ export class AuthController {
   @UseGuards(AtGuard)
   @HttpCode(200)
   @Post('logout')
-  async logout(@GetCurrentUserUUId() userUUID: string) {
-    await this.authService.logout(userUUID);
+  async logout(@GetCurrentUserUUID() userUUID: UUID) {
+    await this.authService.logout(userUUID.String());
 
     return replyOk();
   }
@@ -43,11 +44,14 @@ export class AuthController {
   @Post('refresh')
   async refreshTokens(
     @GetCurrentUser('refreshToken') refreshToken: string,
-    @GetCurrentUserUUId() userUUID: string,
+    @GetCurrentUserUUID() userUUID: UUID,
   ): Promise<any> {
     let tokens: Tokens;
     try {
-      tokens = await this.authService.refreshTokens(userUUID, refreshToken);
+      tokens = await this.authService.refreshTokens(
+        userUUID.String(),
+        refreshToken,
+      );
     } catch (err) {
       return replyErr(err);
     }

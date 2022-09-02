@@ -9,7 +9,7 @@ import { Tokens, JwtPayload } from './interfaces';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon from 'argon2';
 import { UsersService } from 'src/users/users.service';
-import { CreateGoogleUserDto } from 'src/users/dto/create-google-user.dto';
+import { UUID } from 'src/utils/UUID';
 
 @Injectable()
 export class AuthService {

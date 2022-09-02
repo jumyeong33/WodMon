@@ -17,7 +17,7 @@ export class UsersService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(createUserDto: CreateUserDto): Promise<UUID> {
-    const existUser: [User] = await this.prismaService
+    const existUser: [users] = await this.prismaService
       .$queryRaw`SELECT id FROM users WHERE email=${createUserDto.email}`;
 
     if (existUser.length > 0) {
@@ -26,16 +26,19 @@ export class UsersService {
 
     const userUUID = UUID.New();
     const hash = await argon.hash(createUserDto.password);
-    await this.prismaService.$queryRaw`INSERT INTO users(
+    await this.prismaService.$queryRaw`
+      INSERT INTO users(
         user_uuid,
         name,
         email,
-        password)
+        password
+      )
       VALUES(
         ${userUUID.String()},
         ${createUserDto.name},
         ${createUserDto.email},
-        ${hash})`;
+        ${hash}
+      )`;
 
     return userUUID;
   }
@@ -43,7 +46,7 @@ export class UsersService {
   async createWithGoogle(
     createGoogleUserDto: CreateGoogleUserDto,
   ): Promise<UUID> {
-    const existUser: [User] = await this.prismaService
+    const existUser: [users] = await this.prismaService
       .$queryRaw`SELECT id FROM users WHERE email=${createGoogleUserDto.email}`;
 
     if (existUser.length > 0) {
@@ -95,5 +98,17 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  async validateWhitelist(userUUID: UUID): Promise<void> {
+    const user: [users] = await this.prismaService.$queryRaw`
+    SELECT * FROM users WHERE user_uuid = ${userUUID.String()}`;
+
+    if (user.length < 1) {
+      throw new BadRequestException('User Does Not exist');
+    }
+    if (!user[0].whitelisted) {
+      throw new BadRequestException('User is not in Whitelisted');
+    }
   }
 }
