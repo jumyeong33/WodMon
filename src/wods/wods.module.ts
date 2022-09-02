@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { WodController } from './wods.controller';
-import { WodService } from './wods.service';
+import { UsersService } from 'src/users/users.service';
+import { WodsController } from './wods.controller';
+import { WodsService } from './wods.service';
 
 @Module({
   imports: [],
-  controllers: [WodController],
-  providers: [WodService],
+  controllers: [WodsController],
+  providers: [WodsService, UsersService],
 })
-export class WodModule {}
+export class WodsModule {}
