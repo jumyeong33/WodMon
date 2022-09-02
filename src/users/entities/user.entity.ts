@@ -6,6 +6,7 @@ export class User {
   uuid: UUID;
   name: string;
   email: string;
+  whitelisted: boolean;
   createdAt: Date;
   updatedAt?: Date | null;
   archivedAt?: Date | null;
@@ -16,6 +17,7 @@ export class User {
     user.uuid = UUID.FromStr(row.user_uuid);
     user.name = row.name;
     user.email = row.email;
+    user.whitelisted = row.whitelisted;
     user.createdAt = row.created_at;
     user.updatedAt = row.updated_at;
     user.archivedAt = row.archived_at;
@@ -29,6 +31,7 @@ export class User {
       user_uuid: this.uuid.String(),
       name: this.name,
       email: this.email,
+      whitelisted: this.whitelisted ? true : false,
       createdAt: this.createdAt.toDateString(),
       updatedAt:
         this.updatedAt === null
