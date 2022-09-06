@@ -4,6 +4,8 @@ import {
   Get,
   HttpCode,
   Post,
+  Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { GetCurrentUser, GetCurrentUserUUID } from 'src/common/decorators';
@@ -67,14 +69,17 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(GoogleGuard)
-  async googleAuthRedirect(@GetGoogleUser() user: any) {
+  async googleAuthRedirect(@GetGoogleUser() user: any, @Res() res) {
     let tokens: Tokens;
     try {
       tokens = await this.authService.signinWithGoogle(user);
     } catch (err) {
-      return replyErr(err);
+      res.cookie('session', JSON.stringify(replyErr(err)));
+      return res.redirect(`${process.env.FRONTEND_URL}/signin`);
     }
 
-    return replyOk(tokens);
+    res.cookie('session', JSON.stringify(replyOk(tokens)));
+
+    return res.redirect(process.env.FRONTEND_URL);
   }
 }
