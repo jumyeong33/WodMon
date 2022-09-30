@@ -52,4 +52,11 @@ export class Wod {
 export class WodTags {
   public oneWod: Wod;
   public tags: [Tag];
+
+  public serialize() {
+    return {
+      Wod: this.oneWod.serialize(),
+      Tags: this.tags.map((tag) => tag.serialize()),
+    };
+  }
 }

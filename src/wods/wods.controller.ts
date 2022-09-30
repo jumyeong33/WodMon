@@ -12,7 +12,7 @@ import { AtGuard } from 'src/common/guards';
 import { reply, replyErr, replyOk } from 'src/utils/ReplyHelper';
 import { UUID } from 'src/utils/UUID';
 import { CreateWodDto } from './dto/createWod';
-import { Wod } from './entities/wod.entity';
+import { Wod, WodTags } from './entities/wod.entity';
 import { WodsService } from './wods.service';
 
 @Controller('wods')
@@ -65,8 +65,8 @@ export class WodsController {
   @Get('list')
   async list(): Promise<reply> {
     const wods: [any] = await this.wodsService.listWithTags();
-    console.log(wods);
-    return replyOk(wods);
+
+    return replyOk(wods.map((wod: WodTags) => wod.serialize()));
   }
 
   @Get(':uuid')

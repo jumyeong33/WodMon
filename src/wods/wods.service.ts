@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { tags, wods } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Tag } from 'src/tags/entities/tag.entity';
 import { UsersService } from 'src/users/users.service';
 import { UUID } from 'src/utils/UUID';
 import { CreateWodDto } from './dto/createWod';
-import { Wod } from './entities/wod.entity';
+import { Wod, WodTags } from './entities/wod.entity';
 
 @Injectable()
 export class WodsService {
@@ -50,7 +51,7 @@ export class WodsService {
   }
   async getAll(): Promise<any> {
     const wods: [wods] = await this.prismaService
-      .$queryRaw`SELECT * FROM wods WHERE archived_at IS NULL LIMIT 15 OFFSET 0`;
+      .$queryRaw`SELECT * FROM wods WHERE archived_at IS NULL`;
     return Wod.FromRows(wods);
   }
 
@@ -80,26 +81,42 @@ export class WodsService {
   }
 
   async listWithTags(): Promise<any> {
-    const wods: [] = await this.prismaService.$queryRaw`
+    const rows: [any] = await this.prismaService.$queryRaw`
     SELECT 
-      w.id as wod_id,
+      w.id as id,
       w.wod_uuid as wod_uuid,
-      w.user_uuid as user_id,
+      w.user_uuid as user_uuid,
       w.title as title,
       w.description as description,
-      w.created_at as wod_created_at,
-      w.updated_at as wod_updated_at,
-      w.archived_at as wod_archived_at,
+      w.created_at as created_at,
+      w.updated_at as updated_at,
+      w.archived_at as archived_at,
 
       t.tag_uuid as tag_uuid,
       t.tag_slug as tag_slug,
       t.created_at as tag_created_at
     FROM wods w
     LEFT JOIN wod_tag wt ON wt.wod_uuid=w.wod_uuid
-    LEFT JOIN tags t ON wt.tag_uuid=t.tag_uuid;
+    LEFT JOIN tags t ON wt.tag_uuid=t.tag_uuid
     `;
+    const wods = {};
+    for (const row of rows) {
+      // eslint-disable-next-line prefer-const
+      let wodTag = null;
+      if (wods.hasOwnProperty(row.wod_uuid)) {
+        wodTag = wods[row.wod_uuid];
+      } else {
+        wodTag = new WodTags();
+        wodTag.oneWod = Wod.FromRow(row);
+        wodTag.tags = [];
+      }
+      if (row.tag_uuid !== null) {
+        wodTag.tags.push(Tag.FromRow(row));
+      }
+      wods[row.wod_uuid] = wodTag;
+    }
 
-    return wods;
+    return Object.values(wods);
   }
 
   async getAllPaged(limit: number, offset: number): Promise<any> {

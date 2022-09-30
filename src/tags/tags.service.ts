@@ -3,7 +3,6 @@ import { tags } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UUID } from 'src/utils/UUID';
 import { CreateTagDto } from './dto/create-tag.dto';
-import { UpdateTagDto } from './dto/update-tag.dto';
 import { Tag } from './entities/tag.entity';
 
 @Injectable()
@@ -36,17 +35,13 @@ export class TagsService {
 
   async findAll(): Promise<any> {
     const tags: [tags] = await this.prismaService
-      .$queryRaw`SELECT * FROM tags;`;
+      .$queryRaw`SELECT tag_uuid, tag_slug, created_at as tag_created_at FROM tags;`;
 
     return Tag.FromRows(tags);
   }
 
   findOne(id: number) {
     return `This action returns a #${id} tag`;
-  }
-
-  update(id: number, updateTagDto: UpdateTagDto) {
-    return `This action updates a #${id} tag`;
   }
 
   remove(id: number) {

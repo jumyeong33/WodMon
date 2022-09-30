@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/create-tag.dto';
-import { UpdateTagDto } from './dto/update-tag.dto';
 import { UUID } from 'src/utils/UUID';
 import { reply, replyErr, replyOk } from 'src/utils/ReplyHelper';
 import { Tag } from './entities/tag.entity';
@@ -45,11 +44,6 @@ export class TagsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tagsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTagDto: UpdateTagDto) {
-    return this.tagsService.update(+id, updateTagDto);
   }
 
   @Delete(':id')
