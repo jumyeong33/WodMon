@@ -6,12 +6,11 @@ export class Tag {
   slug: string;
   createdAt: Date;
 
-  public static FromRow(row: tags): Tag {
+  public static FromRow(row: any): Tag {
     const tag = new Tag();
     tag.uuid = UUID.FromStr(row.tag_uuid);
     tag.slug = row.tag_slug;
-    tag.createdAt = row.created_at;
-
+    tag.createdAt = row.tag_created_at;
     return tag;
   }
 
