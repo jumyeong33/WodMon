@@ -1,4 +1,5 @@
 import { wods } from '@prisma/client';
+import { Tag } from 'src/tags/entities/tag.entity';
 import { UUID } from 'src/utils/UUID';
 export class Wod {
   id: number;
@@ -24,6 +25,10 @@ export class Wod {
     return wod;
   }
 
+  public static FromRows(rows: [wods]): Wod[] {
+    return rows.map((row) => this.FromRow(row));
+  }
+
   public serialize() {
     return {
       id: this.id,
@@ -42,4 +47,9 @@ export class Wod {
           : this.archivedAt.toDateString(),
     };
   }
+}
+
+export class WodTags {
+  public oneWod: Wod;
+  public tags: [Tag];
 }

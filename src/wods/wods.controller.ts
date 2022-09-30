@@ -1,7 +1,15 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { GetCurrentUserUUID } from 'src/common/decorators';
 import { AtGuard } from 'src/common/guards';
-import { replyErr, replyOk } from 'src/utils/ReplyHelper';
+import { reply, replyErr, replyOk } from 'src/utils/ReplyHelper';
 import { UUID } from 'src/utils/UUID';
 import { CreateWodDto } from './dto/createWod';
 import { Wod } from './entities/wod.entity';
@@ -27,6 +35,40 @@ export class WodsController {
     return replyOk(wodUUID);
   }
 
+  @Get('paged?')
+  async findAllPaged(
+    @Query('limit') limit: number,
+    @Query('offset') offset: number,
+  ): Promise<any> {
+    let wods: Wod[];
+
+    try {
+      wods = await this.wodsService.getAllPaged(limit, offset);
+    } catch (err) {
+      return replyErr(err);
+    }
+    return replyOk(wods.map((wod) => wod.serialize()));
+  }
+
+  @Get('count')
+  async countWods(): Promise<any> {
+    let count: any;
+    try {
+      count = await this.wodsService.countWods();
+      count.count = Number(count.count);
+    } catch (err) {
+      return replyErr(err);
+    }
+
+    return replyOk(count);
+  }
+  @Get('list')
+  async list(): Promise<reply> {
+    const wods: [any] = await this.wodsService.listWithTags();
+    console.log(wods);
+    return replyOk(wods);
+  }
+
   @Get(':uuid')
   async findOne(@Param('uuid') uuid: string) {
     let wod: Wod;
@@ -39,5 +81,27 @@ export class WodsController {
     }
 
     return replyOk(wod.serialize());
+  }
+
+  @Get()
+  async findAll(): Promise<reply> {
+    let wods: Wod[];
+
+    try {
+      wods = await this.wodsService.getAll();
+    } catch (err) {
+      return replyErr(err);
+    }
+    return replyOk(wods.map((wod) => wod.serialize()));
+  }
+
+  @Post()
+  async addTag(@Body() tagUUID: UUID, wodUUID: UUID): Promise<reply> {
+    try {
+      await this.wodsService.tagAdd(tagUUID, wodUUID);
+    } catch (err) {
+      return replyErr(err);
+    }
+    return replyOk();
   }
 }

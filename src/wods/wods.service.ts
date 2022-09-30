@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { wods } from '@prisma/client';
+import { tags, wods } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
 import { UUID } from 'src/utils/UUID';
@@ -41,5 +41,70 @@ export class WodsService {
       throw new BadRequestException('The wod does not exist');
     }
     return Wod.FromRow(wod[0]);
+  }
+
+  async countWods(): Promise<any> {
+    const count = await this.prismaService
+      .$queryRaw`SELECT COUNT(*) as count FROM wods`;
+    return count[0];
+  }
+  async getAll(): Promise<any> {
+    const wods: [wods] = await this.prismaService
+      .$queryRaw`SELECT * FROM wods WHERE archived_at IS NULL LIMIT 15 OFFSET 0`;
+    return Wod.FromRows(wods);
+  }
+
+  async tagAdd(tagUUID: UUID, wodUUID: UUID): Promise<any> {
+    const checkWod: [wods] = await this.prismaService
+      .$queryRaw`SELECT wod_uuid FROM wods WHERE wod_uuid=${wodUUID.String()}`;
+    if (checkWod.length < 1) {
+      throw new BadRequestException('The wod does not exist');
+    }
+    const checkTag: [tags] = await this.prismaService
+      .$queryRaw`SELECT tag_uuid FROM tags WHERE tag_uuid=${tagUUID.String()}`;
+    if (checkTag.length < 1) {
+      throw new BadRequestException('The tag does not exist');
+    }
+    const existTag: [any] = await this.prismaService
+      .$queryRaw`SELECT * FROM wod_tag WHERE wod_uuid = ${wodUUID.String()} AND tag_uuid = ${tagUUID.String()}`;
+    if (existTag.length > 0) {
+      throw new BadRequestException('This Tag is already added at Wod');
+    }
+    const isOverTags: [any] = await this.prismaService
+      .$queryRaw`SELECT COUNT(*) AS n FROM wod_tag WHERE wod_uuid = ${wodUUID.String()}`;
+    if (isOverTags[0].n >= 3) {
+      throw new BadRequestException('The Wod can have 3 tags');
+    }
+    await this.prismaService.$executeRaw`
+    INSERT INTO wod_tag(tag_uuid, wod_uuid) VALUES(${tagUUID.String()}, ${wodUUID.String()})`;
+  }
+
+  async listWithTags(): Promise<any> {
+    const wods: [] = await this.prismaService.$queryRaw`
+    SELECT 
+      w.id as wod_id,
+      w.wod_uuid as wod_uuid,
+      w.user_uuid as user_id,
+      w.title as title,
+      w.description as description,
+      w.created_at as wod_created_at,
+      w.updated_at as wod_updated_at,
+      w.archived_at as wod_archived_at,
+
+      t.tag_uuid as tag_uuid,
+      t.tag_slug as tag_slug,
+      t.created_at as tag_created_at
+    FROM wods w
+    LEFT JOIN wod_tag wt ON wt.wod_uuid=w.wod_uuid
+    LEFT JOIN tags t ON wt.tag_uuid=t.tag_uuid;
+    `;
+
+    return wods;
+  }
+
+  async getAllPaged(limit: number, offset: number): Promise<any> {
+    const wods: [wods] = await this.prismaService
+      .$queryRaw`SELECT * FROM wods WHERE archived_at IS NULL LIMIT ${limit} OFFSET ${offset}`;
+    return Wod.FromRows(wods);
   }
 }
