@@ -8,4 +8,5 @@ model wods {
     updated_at  DateTime?
     archived_at DateTime?
     users       users     @relation(fields: [user_uuid], references: [user_uuid])
+    wod_tags    wod_tag[]
 }

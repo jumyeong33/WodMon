@@ -1,0 +1,17 @@
+model tags {
+    tag_uuid   String    @id
+    tag_slug   String    @unique
+    created_at DateTime  @default(now())
+    wod_tags   wod_tag[]
+}
+
+model wod_tag {
+    tag_uuid   String
+    wod_uuid   String
+    tags       tags     @relation(fields: [tag_uuid], references: [tag_uuid])
+    wods       wods     @relation(fields: [wod_uuid], references: [wod_uuid])
+    created_at DateTime @default(now())
+
+    @@id([tag_uuid, wod_uuid])
+    @@index([wod_uuid])
+}

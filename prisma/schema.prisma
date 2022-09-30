@@ -13,6 +13,23 @@ datasource db {
 generator client {
     provider = "prisma-client-js"
 }
+model tags {
+    tag_uuid   String    @id
+    tag_slug   String    @unique
+    created_at DateTime  @default(now())
+    wod_tags   wod_tag[]
+}
+
+model wod_tag {
+    tag_uuid   String
+    wod_uuid   String
+    tags       tags     @relation(fields: [tag_uuid], references: [tag_uuid])
+    wods       wods     @relation(fields: [wod_uuid], references: [wod_uuid])
+    created_at DateTime @default(now())
+
+    @@id([tag_uuid, wod_uuid])
+    @@index([wod_uuid])
+}
 model users {
     id            Int       @id @default(autoincrement())
     user_uuid     String    @unique
@@ -37,4 +54,5 @@ model wods {
     updated_at  DateTime?
     archived_at DateTime?
     users       users     @relation(fields: [user_uuid], references: [user_uuid])
+    wod_tags    wod_tag[]
 }
