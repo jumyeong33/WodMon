@@ -124,4 +124,63 @@ export class WodsService {
       .$queryRaw`SELECT * FROM wods WHERE archived_at IS NULL LIMIT ${limit} OFFSET ${offset}`;
     return Wod.FromRows(wods);
   }
+
+  async listByTag(tagUUIDs: [UUID]): Promise<any> {
+    let stmt = '';
+    let count: number;
+    for (const [index, tagUUID] of tagUUIDs.entries()) {
+      if (index === 0) {
+        stmt = `\'${tagUUID.String()}\'`;
+        count = 1;
+        continue;
+      }
+      stmt = stmt + `, \'${tagUUID.String()}\'`;
+      count = count + 1;
+    }
+    const query = `
+    SELECT 
+      w.id as id,
+      w.wod_uuid as wod_uuid,
+      w.user_uuid as user_uuid,
+      w.title as title, 
+      w.description as description,
+      w.created_at as created_at,
+      w.updated_at as updated_at,
+      w.archived_at as archived_at,
+
+      t.tag_uuid as tag_uuid,
+      t.tag_slug as tag_slug,
+      t.created_at as tag_created_at
+    FROM wods w
+    RIGHT OUTER JOIN (
+      SELECT 
+        wod_uuid
+      FROM wod_tag 
+      WHERE tag_uuid IN (${stmt})
+      GROUP BY wod_uuid 
+      HAVING COUNT(tag_uuid) >= ${count}
+    ) twt ON twt.wod_uuid= w.wod_uuid
+    JOIN wod_tag wt ON twt.wod_uuid = wt.wod_uuid 
+    JOIN tags t ON t.tag_uuid = wt.tag_uuid
+    ;`;
+
+    const rows: [any] = await this.prismaService.$queryRawUnsafe(query);
+    const wods = {};
+    for (const row of rows) {
+      // eslint-disable-next-line prefer-const
+      let wodTag = null;
+      if (wods.hasOwnProperty(row.wod_uuid)) {
+        wodTag = wods[row.wod_uuid];
+      } else {
+        wodTag = new WodTags();
+        wodTag.oneWod = Wod.FromRow(row);
+        wodTag.tags = [];
+      }
+
+      wodTag.tags.push(Tag.FromRow(row));
+      wods[row.wod_uuid] = wodTag;
+    }
+
+    return Object.values(wods);
+  }
 }

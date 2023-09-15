@@ -104,4 +104,28 @@ export class WodsController {
     }
     return replyOk();
   }
+
+  @Get('list/tags')
+  async findByTag(@Body('uuids') uuids: [string]): Promise<reply> {
+    if (uuids.length < 1) {
+      return replyOk();
+    }
+
+    let wods: WodTags[];
+    let tagUUIDs: [UUID];
+    for (const uuid of uuids) {
+      if (tagUUIDs === undefined) {
+        tagUUIDs = [UUID.FromStr(uuid)];
+        continue;
+      }
+      tagUUIDs.push(UUID.FromStr(uuid));
+    }
+    try {
+      wods = await this.wodsService.listByTag(tagUUIDs);
+    } catch (err) {
+      return replyErr(err);
+    }
+
+    return replyOk(wods.map((wod: WodTags) => wod.serialize()));
+  }
 }
